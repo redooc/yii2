@@ -445,6 +445,7 @@ class Query extends Component implements QueryInterface
      * Sets the FROM part of the query.
      * @param string|array $tables the table(s) to be selected from. This can be either a string (e.g. `'user'`)
      * or an array (e.g. `['user', 'profile']`) specifying one or several table names.
+     * I two or more tables are present will be "inner join"-ed using a cross-join.
      * Table names can contain schema prefixes (e.g. `'public.user'`) and/or table aliases (e.g. `'user u'`).
      * The method will automatically quote the table names unless it contains some parenthesis
      * (which means the table is given as a sub-query or DB expression).
@@ -536,97 +537,117 @@ class Query extends Component implements QueryInterface
      * Appends a JOIN part to the query.
      * The first parameter specifies what type of join it is.
      * @param string $type the type of join, such as INNER JOIN, LEFT JOIN.
-     * @param string|array $table the table to be joined.
-     *
-     * Use string to represent the name of the table to be joined.
-     * Table name can contain schema prefix (e.g. 'public.user') and/or table alias (e.g. 'user u').
-     * The method will automatically quote the table name unless it contains some parenthesis
+     * @param string|array $tables the table(s) to be joined. This can be either a string (e.g. `'user'`)
+     * or an array (e.g. `['user', 'profile']`) specifying one or several table names
+     * If two or more tables are present will be "inner join"-ed using a cross-join.
+     * Table names can contain schema prefixes (e.g. `'public.user'`) and/or table aliases (e.g. `'user u'`).
+     * The method will automatically quote the table names unless it contains some parenthesis
      * (which means the table is given as a sub-query or DB expression).
      *
-     * Use array to represent joining with a sub-query. The array must contain only one element.
-     * The value must be a Query object representing the sub-query while the corresponding key
-     * represents the alias for the sub-query.
+     * When the tables are specified as an array, you may also use the array keys as the table aliases
+     * (if a table does not need alias, do not use a string key).
+     *
+     * Use a Query object to represent a sub-query. In this case, the corresponding array key will be used
+     * as the alias for the sub-query.
      *
      * @param string|array $on the join condition that should appear in the ON part.
      * Please refer to [[where()]] on how to specify this parameter.
      * @param array $params the parameters (name => value) to be bound to the query.
      * @return Query the query object itself
      */
-    public function join($type, $table, $on = '', $params = [])
+    public function join($type, $tables, $on = '', $params = [])
     {
-        $this->join[] = [$type, $table, $on];
+        if (!is_array($tables)) {
+            $tables = preg_split('/\s*,\s*/', trim($tables), -1, PREG_SPLIT_NO_EMPTY);
+        }
+        $this->join[] = [$type, $tables, $on];
         return $this->addParams($params);
     }
 
     /**
      * Appends an INNER JOIN part to the query.
-     * @param string|array $table the table to be joined.
-     *
-     * Use string to represent the name of the table to be joined.
-     * Table name can contain schema prefix (e.g. 'public.user') and/or table alias (e.g. 'user u').
-     * The method will automatically quote the table name unless it contains some parenthesis
+     * @param string|array $tables the table(s) to be joined. This can be either a string (e.g. `'user'`)
+     * or an array (e.g. `['user', 'profile']`) specifying one or several table names.
+     * If two or more tables are present will be "inner join"-ed using a cross-join.
+     * Table names can contain schema prefixes (e.g. `'public.user'`) and/or table aliases (e.g. `'user u'`).
+     * The method will automatically quote the table names unless it contains some parenthesis
      * (which means the table is given as a sub-query or DB expression).
      *
-     * Use array to represent joining with a sub-query. The array must contain only one element.
-     * The value must be a Query object representing the sub-query while the corresponding key
-     * represents the alias for the sub-query.
+     * When the tables are specified as an array, you may also use the array keys as the table aliases
+     * (if a table does not need alias, do not use a string key).
+     *
+     * Use a Query object to represent a sub-query. In this case, the corresponding array key will be used
+     * as the alias for the sub-query.
      *
      * @param string|array $on the join condition that should appear in the ON part.
      * Please refer to [[where()]] on how to specify this parameter.
      * @param array $params the parameters (name => value) to be bound to the query.
      * @return Query the query object itself
      */
-    public function innerJoin($table, $on = '', $params = [])
+    public function innerJoin($tables, $on = '', $params = [])
     {
-        $this->join[] = ['INNER JOIN', $table, $on];
+        if (!is_array($tables)) {
+            $tables = preg_split('/\s*,\s*/', trim($tables), -1, PREG_SPLIT_NO_EMPTY);
+        }
+        $this->join[] = ['INNER JOIN', $tables, $on];
         return $this->addParams($params);
     }
 
     /**
      * Appends a LEFT OUTER JOIN part to the query.
-     * @param string|array $table the table to be joined.
-     *
-     * Use string to represent the name of the table to be joined.
-     * Table name can contain schema prefix (e.g. 'public.user') and/or table alias (e.g. 'user u').
-     * The method will automatically quote the table name unless it contains some parenthesis
+     * @param string|array $tables the table(s) to be joined. This can be either a string (e.g. `'user'`)
+     * or an array (e.g. `['user', 'profile']`) specifying one or several table names.
+     * If two or more tables are present will be "inner join"-ed using a cross-join.
+     * Table names can contain schema prefixes (e.g. `'public.user'`) and/or table aliases (e.g. `'user u'`).
+     * The method will automatically quote the table names unless it contains some parenthesis
      * (which means the table is given as a sub-query or DB expression).
      *
-     * Use array to represent joining with a sub-query. The array must contain only one element.
-     * The value must be a Query object representing the sub-query while the corresponding key
-     * represents the alias for the sub-query.
+     * When the tables are specified as an array, you may also use the array keys as the table aliases
+     * (if a table does not need alias, do not use a string key).
+     *
+     * Use a Query object to represent a sub-query. In this case, the corresponding array key will be used
+     * as the alias for the sub-query.
      *
      * @param string|array $on the join condition that should appear in the ON part.
      * Please refer to [[where()]] on how to specify this parameter.
      * @param array $params the parameters (name => value) to be bound to the query
      * @return Query the query object itself
      */
-    public function leftJoin($table, $on = '', $params = [])
+    public function leftJoin($tables, $on = '', $params = [])
     {
-        $this->join[] = ['LEFT JOIN', $table, $on];
+        if (!is_array($tables)) {
+            $tables = preg_split('/\s*,\s*/', trim($tables), -1, PREG_SPLIT_NO_EMPTY);
+        }
+        $this->join[] = ['LEFT JOIN', $tables, $on];
         return $this->addParams($params);
     }
 
     /**
      * Appends a RIGHT OUTER JOIN part to the query.
-     * @param string|array $table the table to be joined.
-     *
-     * Use string to represent the name of the table to be joined.
-     * Table name can contain schema prefix (e.g. 'public.user') and/or table alias (e.g. 'user u').
-     * The method will automatically quote the table name unless it contains some parenthesis
+     * @param string|array $tables the table(s) to be joined. This can be either a string (e.g. `'user'`)
+     * or an array (e.g. `['user', 'profile']`) specifying one or several table names.
+     * If two or more tables are present will be "inner join"-ed using a cross-join.
+     * Table names can contain schema prefixes (e.g. `'public.user'`) and/or table aliases (e.g. `'user u'`).
+     * The method will automatically quote the table names unless it contains some parenthesis
      * (which means the table is given as a sub-query or DB expression).
      *
-     * Use array to represent joining with a sub-query. The array must contain only one element.
-     * The value must be a Query object representing the sub-query while the corresponding key
-     * represents the alias for the sub-query.
+     * When the tables are specified as an array, you may also use the array keys as the table aliases
+     * (if a table does not need alias, do not use a string key).
+     *
+     * Use a Query object to represent a sub-query. In this case, the corresponding array key will be used
+     * as the alias for the sub-query.
      *
      * @param string|array $on the join condition that should appear in the ON part.
      * Please refer to [[where()]] on how to specify this parameter.
      * @param array $params the parameters (name => value) to be bound to the query
      * @return Query the query object itself
      */
-    public function rightJoin($table, $on = '', $params = [])
+    public function rightJoin($tables, $on = '', $params = [])
     {
-        $this->join[] = ['RIGHT JOIN', $table, $on];
+        if (!is_array($tables)) {
+            $tables = preg_split('/\s*,\s*/', trim($tables), -1, PREG_SPLIT_NO_EMPTY);
+        }
+        $this->join[] = ['RIGHT JOIN', $tables, $on];
         return $this->addParams($params);
     }
 

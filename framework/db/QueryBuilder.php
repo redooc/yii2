@@ -685,8 +685,13 @@ class QueryBuilder extends \yii\base\Object
             // 0:join type, 1:join table, 2:on-condition (optional)
             list ($joinType, $table) = $join;
             $tables = $this->quoteTableNames((array) $table, $params);
-            $table = reset($tables);
-            $joins[$i] = "$joinType $table";
+            if(count($tables)>1) {
+                $tables = join(', ', $tables);
+                $joins[$i] = "$joinType ( $tables )";
+            } else {
+                $table = reset($tables);
+                $joins[$i] = "$joinType $table";
+            }
             if (isset($join[2])) {
                 $condition = $this->buildCondition($join[2], $params);
                 if ($condition !== '') {
