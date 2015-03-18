@@ -249,10 +249,20 @@ class ActiveField extends \yii\widgets\ActiveField
                     'labelOptions' => ['class' => 'checkbox-inline'],
                 ];
             }
-        }  elseif (!isset($options['item'])) {
-            $options['item'] = function ($index, $label, $name, $checked, $value) {
-                return '<div class="checkbox">' . Html::checkbox($name, $checked, ['label' => $label, 'value' => $value]) . '</div>';
-            };
+        } elseif (!isset($options['item'])) {
+            if (isset($options['itemOptions'])) {
+                $options['item'] = function ($index, $label, $name, $checked, $value) use ($options) {
+                    $containerOptions = isset($options['itemOptions']['containerOptions']) ? $options['itemOptions']['containerOptions'] : [];
+                    unset($options['itemOptions']['containerOptions']);
+                    return html::tag(
+                        'div', Html::checkbox($name, $checked, ['label' => $label, 'value' => $value] + $options['itemOptions']),
+                        $containerOptions);
+                };
+            } else {
+                $options['item'] = function ($index, $label, $name, $checked, $value) {
+                    return '<div class="checkbox">' . Html::checkbox($name, $checked, ['label' => $label, 'value' => $value]) . '</div>';
+                };
+            }
         }
         parent::checkboxList($items, $options);
         return $this;
@@ -275,10 +285,20 @@ class ActiveField extends \yii\widgets\ActiveField
                     'labelOptions' => ['class' => 'radio-inline'],
                 ];
             }
-        }  elseif (!isset($options['item'])) {
-            $options['item'] = function ($index, $label, $name, $checked, $value) {
-                return '<div class="radio">' . Html::radio($name, $checked, ['label' => $label, 'value' => $value]) . '</div>';
-            };
+        } elseif (!isset($options['item'])) {
+            if (isset($options['itemOptions'])) {
+                $options['item'] = function ($index, $label, $name, $checked, $value) use ($options) {
+                    $containerOptions = isset($options['itemOptions']['containerOptions']) ? $options['itemOptions']['containerOptions'] : [];
+                    unset($options['itemOptions']['containerOptions']);
+                    return html::tag(
+                        'div', Html::radio($name, $checked, ['label' => $label, 'value' => $value] + $options['itemOptions']),
+                        $containerOptions);
+                };
+            } else {
+                $options['item'] = function ($index, $label, $name, $checked, $value) {
+                    return '<div class="radio">' . Html::radio($name, $checked, ['label' => $label, 'value' => $value]) . '</div>';
+                };
+            }
         }
         parent::radioList($items, $options);
         return $this;
